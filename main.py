@@ -24,7 +24,7 @@ class Landmark(pygame.sprite.Sprite):
         self.__column = column
         self.rect = self.image.get_rect()
         self.rect.x = column - self.rect.width / 2
-        self.rect.y = row - self.rect.height / 2
+        self.rect.y = row - 40
 
 
 def init_screen(width=WINDOW_WIDTH, height=WINDOW_HEIGHT):
