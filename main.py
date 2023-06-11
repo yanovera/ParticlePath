@@ -243,8 +243,8 @@ def main():
         weights = eval_weights(
             sensor_data=sensors_reading, particles=particles, noise_variance=PROXIMITY_VAR, old_weights=weights)
 
-        neff = 1 / sum(weights**2)
-        if neff < len(particles) * 2/3:
+        n_eff = 1 / sum(weights**2)
+        if n_eff < len(particles) * 2/3:
             # resample new particle set according to their importance weights
             particles = resample_particles(particles, weights)
 
