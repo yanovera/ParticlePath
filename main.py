@@ -22,7 +22,7 @@ REGULATION_VAR = 0.01
 
 def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons: list[Beacon], map_limits: WorldLimits, estimated_trajectory: list[Point]):
     # Visualizes the state of the particle filter.
-    # Displays the particle cloud, mean position and beacons.
+    # Displays the particle cloud, beacons, and true vs estimated trajectories
 
     true_traj_x = []
     true_traj_y = []
@@ -192,10 +192,8 @@ def read_sensors(agent: Agent, beacons: list[Beacon], beacon_radius: float, nois
 
 
 def main():
-    # add random seed for generating comparable pseudo random numbers
-    np.random.seed(123)
+    np.random.seed(100)
 
-    # plot preferences, interactive plotting mode
     plt.title('Particle Filter')
     plt.xlabel('x')
     plt.ylabel('y')
@@ -204,10 +202,7 @@ def main():
     plt.ion()
     plt.show()
 
-    # implementation of a particle filter for robot pose estimation
-
     # initialize the particles
-
     particles = initialize_particles(num_particles=NUM_PARTICLES, map_limits=WORLD_LIMITS)
 
     waypoints = cycle(WAYPOINTS_DATA)
@@ -224,7 +219,6 @@ def main():
 
     # run particle filter
     for timestep in range(SIM_TIME):
-        # plot the current state
         plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory)
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR)
