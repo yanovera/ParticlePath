@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.stats
 import matplotlib.pyplot as plt
-# from celluloid import Camera
 import copy
 from itertools import cycle
 
@@ -193,16 +192,14 @@ def read_sensors(agent: Agent, beacons: list[Beacon], beacon_radius: float, nois
 
 
 def main():
-
     # add random seed for generating comparable pseudo random numbers
     np.random.seed(123)
 
     # plot preferences, interactive plotting mode
-    # fig = plt.figure()
     plt.title('Particle Filter')
     plt.xlabel('x')
     plt.ylabel('y')
-    # camera = Camera(fig)
+
     plt.axis(WORLD_LIMITS.to_tuple())
     plt.ion()
     plt.show()
@@ -229,7 +226,6 @@ def main():
     for timestep in range(SIM_TIME):
         # plot the current state
         plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory)
-        # camera.snap()
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR)
         true_trajectory.append(copy.deepcopy(agent))
@@ -254,9 +250,6 @@ def main():
 
         estimated_trajectory.append(mean_pose(particles, weights))
 
-    # save animation as .mp4
-    # animation = camera.animate()
-    # animation.save('animation.mp4')
     plt.show(block=True)
 
 
