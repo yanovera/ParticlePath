@@ -111,11 +111,11 @@ def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[P
     scale = np.sqrt(noise_variance)
 
     for particle in particles:
-        particle_prob = 1
+        likelihood = 1
         for beacon, distance in sensor_data.values():
             expected_distance = particle.distance(beacon)
-            particle_prob *= scipy.stats.norm.pdf(distance, expected_distance, scale)
-        weights.append(particle_prob)
+            likelihood *= scipy.stats.norm.pdf(distance, expected_distance, scale)
+        weights.append(likelihood)
 
     # normalize weights
     weights = np.array(weights) / sum(weights)
