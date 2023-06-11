@@ -123,7 +123,7 @@ def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[P
     return weights
 
 
-def mean_pose(particles) -> Point:
+def mean_pose(particles, weights) -> Point:
     # calculate the mean pose of a particle set.
     # the mean position is the mean of the particle coordinates
 
@@ -137,6 +137,12 @@ def mean_pose(particles) -> Point:
     # calculate average coordinates
     x_mean = np.mean(xs)
     y_mean = np.mean(ys)
+
+    # x_mean = 0
+    # y_mean = 0
+    # for i, particle in enumerate(particles):
+    #     x_mean += weights[i] * particle.x
+    #     y_mean += weights[i] * particle.y
 
     return Point(x=x_mean, y=y_mean)
 
@@ -238,7 +244,7 @@ def main():
         # resample new particle set according to their importance weights
         particles = resample_particles(particles, weights)
 
-        estimated_trajectory.append(mean_pose(particles))
+        estimated_trajectory.append(mean_pose(particles, weights))
 
     # save animation as .mp4
     # animation = camera.animate()
