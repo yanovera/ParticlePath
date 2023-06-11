@@ -118,8 +118,7 @@ def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[P
         weights.append(particle_prob)
 
     # normalize weights
-    normalizer = sum(weights)
-    weights = np.array(weights) / normalizer
+    weights = np.array(weights) / sum(weights)
 
     return weights
 
