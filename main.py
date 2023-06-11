@@ -124,8 +124,7 @@ def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[P
 
 
 def mean_pose(particles, weights) -> Point:
-    # calculate the mean pose of a particle set.
-    # the mean position is the mean of the particle coordinates
+    # calculates the mean pose of a particle set.
 
     x_mean = 0
     y_mean = 0
@@ -147,11 +146,15 @@ def mean_pose(particles, weights) -> Point:
 
 
 def resample_particles(particles: list[Particle], weights: np.array):
-    # Returns a new set of particles obtained by performing
-    # stochastic universal sampling, according to the particle weights.
-
+    # Returns a new set of particles
     new_particles = []
 
+    # for i, particle in enumerate(particles):
+    #     duplications = int(weights[i]*len(particles))
+    #     for m in range(duplications):
+    #         new_particles.append(copy.deepcopy(particle))
+
+    # perform stochastic universal sampling, according to the particle weights.
     mm = len(particles)
     r = np.random.uniform(0, 1/mm)
     c = weights[0]
@@ -163,11 +166,6 @@ def resample_particles(particles: list[Particle], weights: np.array):
             i = i + 1
             c = c + weights[i]
         new_particles.append(copy.deepcopy(particles[i]))
-
-    # for i, particle in enumerate(particles):
-    #     duplications = int(weights[i]*len(particles))
-    #     for m in range(duplications):
-    #         new_particles.append(copy.deepcopy(particle))
 
     return new_particles
 
