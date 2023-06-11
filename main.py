@@ -164,8 +164,8 @@ def resample_particles(particles: list[Particle], weights: np.array):
 
 def read_odometer(trajectory: list[Point], noise_variance: float) -> OdometerReading:
     scale = np.sqrt(noise_variance)
-    vx = trajectory[-1].x - trajectory[-2].x + np.random.normal(loc=0, scale=scale)
-    vy = trajectory[-1].y - trajectory[-2].y + np.random.normal(loc=0, scale=scale)
+    vx = np.random.normal(loc=trajectory[-1].x - trajectory[-2].x, scale=scale)
+    vy = np.random.normal(loc=trajectory[-1].y - trajectory[-2].y, scale=scale)
 
     return OdometerReading(vx=vx, vy=vy)
 
@@ -174,8 +174,7 @@ def read_sensors(agent: Agent, beacons: list[Beacon], beacon_radius: float, nois
     sensor_reading = {}
     scale = np.sqrt(noise_variance)
     for beacon in beacons:
-        distance = agent.distance(beacon)
-        distance += np.random.normal(loc=0, scale=scale)
+        distance = np.random.normal(loc=agent.distance(beacon), scale=scale)
         if distance <= beacon_radius:
             sensor_reading[beacon.id] = (beacon, distance)
 
