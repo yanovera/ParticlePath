@@ -18,6 +18,7 @@ NUM_PARTICLES = 1000
 ODOMETER_VAR = 0.1
 PROXIMITY_VAR = 0.4
 MOTION_VAR = 0.001
+REGULATION_VAR = 0.01
 
 
 def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons: list[Beacon], map_limits: WorldLimits, estimated_trajectory: list[Point]):
@@ -235,7 +236,7 @@ def main():
         sensors_reading = read_sensors(agent=agent, beacons=BEACONS_DATA, beacon_radius=BEACON_RADIUS, noise_variance=PROXIMITY_VAR)
 
         # predict particles by sampling from motion model with odometry info
-        move_particles(particles=particles, odometer_reading=odometer_reading, noise_variance=10*MOTION_VAR)
+        move_particles(particles=particles, odometer_reading=odometer_reading, noise_variance=REGULATION_VAR)
 
         # calculate importance weights according to sensors readings
         weights = eval_weights(
