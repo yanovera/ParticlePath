@@ -13,6 +13,7 @@ SIM_TIME = 1300
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
 SPEED = 0.1  # distance unit per time unit
+NUM_PARTICLES = 1000
 
 ODOMETER_VAR = 0.1
 PROXIMITY_VAR = 0.4
@@ -101,7 +102,7 @@ def move_particles(particles: list[Particle], odometer_reading: OdometerReading,
         particle.y += odometer_reading.vy + np.random.normal(loc=0, scale=scale)
 
 
-def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[Particle], noise_variance:float) -> np.array:
+def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[Particle], noise_variance:float) -> np.array:
     # Computes the observation likelihood of all particles, given the
     # particle and beacons positions and sensor measurements
 
@@ -110,12 +111,11 @@ def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: l
     scale = np.sqrt(noise_variance)
 
     for particle in particles:
-        prob = 1
+        particle_prob = 1
         for beacon, distance in sensor_data.values():
             expected_distance = particle.distance(beacon)
-            prob_i = scipy.stats.norm.pdf(distance, expected_distance, scale)
-            prob = prob * prob_i
-        weights.append(prob)
+            particle_prob *= scipy.stats.norm.pdf(distance, expected_distance, scale)
+        weights.append(particle_prob)
 
     # normalize weights
     normalizer = sum(weights)
@@ -201,7 +201,7 @@ def main():
 
     # initialize the particles
 
-    particles = initialize_particles(num_particles=1000, map_limits=WORLD_LIMITS)
+    particles = initialize_particles(num_particles=NUM_PARTICLES, map_limits=WORLD_LIMITS)
 
     waypoints = cycle(WAYPOINTS_DATA)
 
@@ -231,8 +231,8 @@ def main():
         # predict particles by sampling from motion model with odometry info
         move_particles(particles=particles, odometer_reading=odometer_reading, noise_variance=MOTION_VAR*10)
 
-        # calculate importance weights according to sensor model
-        weights = eval_sensor_model(
+        # calculate importance weights according to sensors readings
+        weights = eval_weights(
             sensor_data=sensors_reading, particles=particles, noise_variance=PROXIMITY_VAR)
 
         # resample new particle set according to their importance weights
