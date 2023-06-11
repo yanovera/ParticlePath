@@ -114,7 +114,7 @@ def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: l
 
         prob = 1
         for beacon, distance in sensor_data.values():
-            expected_distance = norm((particle.x-beacon.x, particle.y-beacon.y))
+            expected_distance = particle.distance(beacon)
             prob_i = scipy.stats.norm.pdf(distance, expected_distance, scale)
             prob = prob * prob_i
         weights.append(prob)
