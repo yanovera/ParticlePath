@@ -116,7 +116,7 @@ def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[P
         for beacon, distance in sensor_data.values():
             expected_distance = particle.distance(beacon)
             likelihood *= scipy.stats.norm.pdf(distance, expected_distance, scale)
-        weights.append(likelihood)# * old_weights[i])
+        weights.append(likelihood)  # * old_weights[i])
 
     # normalize weights
     weights = np.array(weights) / sum(weights)
@@ -152,6 +152,7 @@ def resample_particles(particles: list[Particle], weights: np.array):
     # stochastic universal sampling, according to the particle weights.
 
     new_particles = []
+
     mm = len(particles)
     r = np.random.uniform(0, 1/mm)
     c = weights[0]
@@ -163,6 +164,11 @@ def resample_particles(particles: list[Particle], weights: np.array):
             i = i + 1
             c = c + weights[i]
         new_particles.append(copy.deepcopy(particles[i]))
+
+    # for i, particle in enumerate(particles):
+    #     duplications = int(weights[i]*len(particles))
+    #     for m in range(duplications):
+    #         new_particles.append(copy.deepcopy(particle))
 
     return new_particles
 
