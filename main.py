@@ -110,7 +110,6 @@ def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: l
     scale = np.sqrt(noise_variance)
 
     for particle in particles:
-
         prob = 1
         for beacon, distance in sensor_data.values():
             expected_distance = particle.distance(beacon)
@@ -244,7 +243,7 @@ def main():
     # save animation as .mp4
     # animation = camera.animate()
     # animation.save('animation.mp4')
-    plt.show()
+    plt.show(block=True)
 
 
 if __name__ == "__main__":
