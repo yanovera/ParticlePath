@@ -1,30 +1,27 @@
 import numpy as np
-from numpy.linalg import norm
 import scipy.stats
 import matplotlib.pyplot as plt
 # from celluloid import Camera
 import copy
 from itertools import cycle
-import random
 
 from classes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReading, BeaconID
 from data import BEACONS_DATA, WAYPOINTS_DATA
 
 WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
-INIT_POS = Point(x=1, y=1)
-SIM_TIME = 600
+SIM_TIME = 1300
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
 SPEED = 0.1  # distance unit per time unit
 
 ODOMETER_VAR = 0.1
 PROXIMITY_VAR = 0.4
+MOTION_VAR = 0.001
 
 
 def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons: list[Beacon], map_limits: WorldLimits, estimated_trajectory: list[Point]):
     # Visualizes the state of the particle filter.
-    #
-    # Displays the particle cloud, mean position and landmarks.
+    # Displays the particle cloud, mean position and beacons.
 
     true_traj_x = []
     true_traj_y = []
@@ -60,8 +57,8 @@ def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons:
     # plot filter state
     plt.clf()
     plt.plot(true_traj_x, true_traj_y, 'g.')
-    plt.plot(estimated_traj_x, estimated_traj_y, 'r.')
-    plt.plot(particles_x, particles_y, 'm.')
+    plt.plot(estimated_traj_x, estimated_traj_y, 'r-')
+    plt.plot(particles_x, particles_y, 'm.', markersize=0.2)
     plt.plot(beacons_x, beacons_y, 'co', markersize=10)
     for beacon in beacons:
         plt.annotate(beacon.id, (beacon.x-0.3, beacon.y-0.6))
@@ -87,19 +84,21 @@ def initialize_particles(num_particles: int, map_limits: WorldLimits) -> list[Pa
     return particles
 
 
-def move_agent(next_waypoint: Point, agent: Agent, speed: float):
+def move_agent(next_waypoint: Point, agent: Agent, speed: float, noise_variance: float):
+    scale = np.sqrt(noise_variance)
     delta_x = next_waypoint.x - agent.x
     delta_y = next_waypoint.y - agent.y
     distance = agent.distance(next_waypoint)
 
-    agent.x += delta_x / distance * speed
-    agent.y += delta_y / distance * speed
+    agent.x += delta_x / distance * speed + np.random.normal(loc=0, scale=scale)
+    agent.y += delta_y / distance * speed + np.random.normal(loc=0, scale=scale)
 
 
-def move_particles(particles: list[Particle], odometer_reading: OdometerReading):
+def move_particles(particles: list[Particle], odometer_reading: OdometerReading, noise_variance: float):
+    scale = np.sqrt(noise_variance)
     for particle in particles:
-        particle.x += odometer_reading.vx
-        particle.y += odometer_reading.vy
+        particle.x += odometer_reading.vx + np.random.normal(loc=0, scale=scale)
+        particle.y += odometer_reading.vy + np.random.normal(loc=0, scale=scale)
 
 
 def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[Particle], noise_variance:float) -> np.array:
@@ -122,7 +121,6 @@ def eval_sensor_model(sensor_data: dict[BeaconID, (Beacon, float)], particles: l
     # normalize weights
     normalizer = sum(weights)
     weights = np.array(weights) / normalizer
-    s = sum(weights)
 
     return weights
 
@@ -160,7 +158,7 @@ def resample_particles(particles: list[Particle], weights: np.array):
         while u > c:
             i = i + 1
             c = c + weights[i]
-        new_particles.append(particles[i])
+        new_particles.append(copy.deepcopy(particles[i]))
 
     return new_particles
 
@@ -210,10 +208,11 @@ def main():
 
     next_waypoint = next(waypoints)
 
-    agent = Agent(x=INIT_POS.x, y=INIT_POS.y)
+    agent = Agent(x=next_waypoint.x, y=next_waypoint.y)
+    next_waypoint = next(waypoints)
 
     true_trajectory = [copy.deepcopy(agent)]
-    estimated_trajectory = [mean_pose(particles)]
+    estimated_trajectory = [copy.deepcopy(agent)]
 
     # run particle filter
     for timestep in range(SIM_TIME):
@@ -221,7 +220,7 @@ def main():
         plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory)
         # camera.snap()
 
-        move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED)
+        move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR)
         true_trajectory.append(copy.deepcopy(agent))
 
         if agent.distance(next_waypoint) < WAYPOINT_TOLERANCE:
@@ -231,7 +230,7 @@ def main():
         sensors_reading = read_sensors(agent=agent, beacons=BEACONS_DATA, beacon_radius=BEACON_RADIUS, noise_variance=PROXIMITY_VAR)
 
         # predict particles by sampling from motion model with odometry info
-        move_particles(particles=particles, odometer_reading=odometer_reading)
+        move_particles(particles=particles, odometer_reading=odometer_reading, noise_variance=MOTION_VAR*10)
 
         # calculate importance weights according to sensor model
         weights = eval_sensor_model(
@@ -245,7 +244,7 @@ def main():
     # save animation as .mp4
     # animation = camera.animate()
     # animation.save('animation.mp4')
-    # plt.show('hold')
+    plt.show()
 
 
 if __name__ == "__main__":
