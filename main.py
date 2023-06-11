@@ -128,22 +128,21 @@ def mean_pose(particles, weights) -> Point:
     # calculate the mean pose of a particle set.
     # the mean position is the mean of the particle coordinates
 
-    xs = []
-    ys = []
+    x_mean = 0
+    y_mean = 0
+    for i, particle in enumerate(particles):
+        x_mean += weights[i] * particle.x
+        y_mean += weights[i] * particle.y
 
-    for particle in particles:
-        xs.append(particle.x)
-        ys.append(particle.y)
-
-    # calculate average coordinates
-    x_mean = np.mean(xs)
-    y_mean = np.mean(ys)
-
-    # x_mean = 0
-    # y_mean = 0
-    # for i, particle in enumerate(particles):
-    #     x_mean += weights[i] * particle.x
-    #     y_mean += weights[i] * particle.y
+    # xs = []
+    # ys = []
+    # for particle in particles:
+    #     xs.append(particle.x)
+    #     ys.append(particle.y)
+    #
+    # # calculate average coordinates
+    # x_mean = np.mean(xs)
+    # y_mean = np.mean(ys)
 
     return Point(x=x_mean, y=y_mean)
 
@@ -242,8 +241,10 @@ def main():
         weights = eval_weights(
             sensor_data=sensors_reading, particles=particles, noise_variance=PROXIMITY_VAR, old_weights=weights)
 
-        # resample new particle set according to their importance weights
-        particles = resample_particles(particles, weights)
+        neff = 1 / sum(weights**2)
+        if neff < len(particles) * 2/3:
+            # resample new particle set according to their importance weights
+            particles = resample_particles(particles, weights)
 
         estimated_trajectory.append(mean_pose(particles, weights))
 
