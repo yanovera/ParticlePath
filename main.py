@@ -15,6 +15,7 @@ BEACON_RADIUS = 2.0
 SPEED = 1.0  # distance unit per time unit
 FREQ = 4  # sampling frequency per time unit
 NUM_PARTICLES = 1000
+SAVE_ANIMATION = False
 
 ODOMETER_VAR = 0.1
 PROXIMITY_VAR = 0.4
@@ -58,7 +59,6 @@ def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons:
         beacons_id.append(beacon.id)
 
     # plot filter state
-    plt.clf()
     plt.axis('scaled')
     plt.plot(true_traj_x, true_traj_y, 'g.')
     plt.plot(estimated_traj_x, estimated_traj_y, 'r-')
@@ -203,8 +203,11 @@ def main():
 
     # run particle filter
     for timestep in range(SIM_STEPS):
+        if SAVE_ANIMATION:
+            camera.snap()
+        else:
+            plt.clf()
         plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory[3:])
-        camera.snap()
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR, dt=dt)
         true_trajectory.append(copy.deepcopy(agent))
@@ -230,10 +233,13 @@ def main():
 
         estimated_trajectory.append(mean_pose(particles, weights))
 
-    # save animation as .mp4
-    animation = camera.animate()
-    animation.save('animation.mp4')
-    plt.show(block=True)
+    if SAVE_ANIMATION:
+        # save animation as .mp4
+        camera.snap()
+        animation = camera.animate()
+        animation.save('animation.mp4')
+    else:
+        plt.show(block=True)
 
 
 if __name__ == "__main__":
