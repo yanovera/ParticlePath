@@ -8,7 +8,7 @@ from classes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReading
 from data import BEACONS_DATA, WAYPOINTS_DATA
 
 WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
-SIM_STEPS = 300
+SIM_STEPS = 360
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
 SPEED = 1  # distance unit per second
