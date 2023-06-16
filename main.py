@@ -3,6 +3,7 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import copy
 from itertools import cycle
+from celluloid import Camera
 
 from classes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReading, BeaconID
 from data import BEACONS_DATA, WAYPOINTS_DATA
@@ -174,11 +175,11 @@ def read_sensors(agent: Agent, beacons: list[Beacon], beacon_radius: float, nois
 
 def main():
     np.random.seed(11)
-
+    fig = plt.figure()
     plt.title('Particle Filter')
     plt.xlabel('x')
     plt.ylabel('y')
-
+    camera = Camera(fig)
     plt.axis(WORLD_LIMITS.to_tuple())
     plt.ion()
     plt.show()
@@ -203,6 +204,7 @@ def main():
     # run particle filter
     for timestep in range(SIM_STEPS):
         plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory[3:])
+        camera.snap()
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR, dt=dt)
         true_trajectory.append(copy.deepcopy(agent))
@@ -228,6 +230,9 @@ def main():
 
         estimated_trajectory.append(mean_pose(particles, weights))
 
+    # save animation as .mp4
+    animation = camera.animate()
+    animation.save('animation.mp4')
     plt.show(block=True)
 
 
