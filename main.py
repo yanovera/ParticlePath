@@ -149,23 +149,14 @@ def mean_pose(particles, weights) -> Point:
 def resample_particles(particles: list[Particle], weights: np.array):
     # Returns a new set of particles
     new_particles = []
-
-    # for i, particle in enumerate(particles):
-    #     duplications = int(weights[i]*len(particles))
-    #     for m in range(duplications):
-    #         new_particles.append(copy.deepcopy(particle))
-
-    # perform stochastic universal sampling, according to the particle weights.
-    mm = len(particles)
-    r = np.random.uniform(0, 1/mm)
-    c = weights[0]
+    n = len(particles)
+    cdf = np.cumsum(weights)
     i = 0
-
-    for m in range(mm):
-        u = r + m / mm
-        while u > c:
-            i = i + 1
-            c = c + weights[i]
+    for j in range(n):
+        starting_point = np.random.uniform(0, 1 / n)
+        u = starting_point + j / n  # move along the cdf
+        while u > cdf[i]:
+            i += 1
         new_particles.append(copy.deepcopy(particles[i]))
 
     return new_particles
@@ -240,6 +231,7 @@ def main():
         if n_eff < len(particles) * 2/3:
             # resample new particle set according to their importance weights
             particles = resample_particles(particles, weights)
+            weights = np.ones(len(particles)) / len(particles)
 
         estimated_trajectory.append(mean_pose(particles, weights))
 
