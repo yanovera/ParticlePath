@@ -8,10 +8,11 @@ from classes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReading
 from data import BEACONS_DATA, WAYPOINTS_DATA
 
 WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
-SIM_TIME = 450
+SIM_STEPS = 300
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
-SPEED = 0.1  # distance unit per time unit
+SPEED = 1  # distance unit per second
+DT = 0.25  # sim time step duration
 NUM_PARTICLES = 1000
 
 ODOMETER_VAR = 0.1
@@ -92,15 +93,15 @@ def move_agent(next_waypoint: Point, agent: Agent, speed: float, noise_variance:
     delta_y = next_waypoint.y - agent.y
     distance = agent.distance(next_waypoint)
 
-    agent.x += delta_x / distance * speed + np.random.normal(loc=0, scale=scale)
-    agent.y += delta_y / distance * speed + np.random.normal(loc=0, scale=scale)
+    agent.x += DT*(delta_x / distance * speed + np.random.normal(loc=0, scale=scale))
+    agent.y += DT*(delta_y / distance * speed + np.random.normal(loc=0, scale=scale))
 
 
 def move_particles(particles: list[Particle], odometer_reading: OdometerReading, noise_variance: float):
     scale = np.sqrt(noise_variance)
     for particle in particles:
-        particle.x += odometer_reading.vx + np.random.normal(loc=0, scale=scale)
-        particle.y += odometer_reading.vy + np.random.normal(loc=0, scale=scale)
+        particle.x += odometer_reading.vx * DT + np.random.normal(loc=0, scale=scale)
+        particle.y += odometer_reading.vy * DT + np.random.normal(loc=0, scale=scale)
 
 
 def eval_weights(sensor_data: dict[BeaconID, (Beacon, float)], particles: list[Particle], noise_variance: float, old_weights: list[float]) -> np.array:
@@ -164,8 +165,8 @@ def resample_particles(particles: list[Particle], weights: np.array):
 
 def read_odometer(trajectory: list[Point], noise_variance: float) -> OdometerReading:
     scale = np.sqrt(noise_variance)
-    vx = np.random.normal(loc=trajectory[-1].x - trajectory[-2].x, scale=scale)
-    vy = np.random.normal(loc=trajectory[-1].y - trajectory[-2].y, scale=scale)
+    vx = np.random.normal(loc=(trajectory[-1].x - trajectory[-2].x)/DT, scale=scale)
+    vy = np.random.normal(loc=(trajectory[-1].y - trajectory[-2].y)/DT, scale=scale)
 
     return OdometerReading(vx=vx, vy=vy)
 
@@ -208,8 +209,8 @@ def main():
     weights = np.ones(len(particles)) / len(particles)
 
     # run particle filter
-    for timestep in range(SIM_TIME):
-        plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory[12:])
+    for timestep in range(SIM_STEPS):
+        plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory[6:])
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR)
         true_trajectory.append(copy.deepcopy(agent))
