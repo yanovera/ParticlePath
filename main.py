@@ -8,7 +8,7 @@ from classes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReading
 from data import BEACONS_DATA, WAYPOINTS_DATA
 
 WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
-SIM_TIME = 1300
+SIM_TIME = 450
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
 SPEED = 0.1  # distance unit per time unit
@@ -57,6 +57,7 @@ def plot_state(true_trajectory: list[Point], particles: list[Particle], beacons:
 
     # plot filter state
     plt.clf()
+    plt.axis('scaled')
     plt.plot(true_traj_x, true_traj_y, 'g.')
     plt.plot(estimated_traj_x, estimated_traj_y, 'r-')
     plt.plot(particles_x, particles_y, 'm.', markersize=0.2)
@@ -190,7 +191,7 @@ def read_sensors(agent: Agent, beacons: list[Beacon], beacon_radius: float, nois
 
 
 def main():
-    np.random.seed(100)
+    np.random.seed(0)
 
     plt.title('Particle Filter')
     plt.xlabel('x')
@@ -217,7 +218,7 @@ def main():
 
     # run particle filter
     for timestep in range(SIM_TIME):
-        plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory)
+        plot_state(particles=particles, beacons=BEACONS_DATA, map_limits=WORLD_LIMITS, true_trajectory=true_trajectory, estimated_trajectory=estimated_trajectory[12:])
 
         move_agent(next_waypoint=next_waypoint, agent=agent, speed=SPEED, noise_variance=MOTION_VAR)
         true_trajectory.append(copy.deepcopy(agent))
