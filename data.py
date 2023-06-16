@@ -12,8 +12,10 @@ BEACONS_DATA = [Beacon(id=1, x=3.5, y=5),
                 Beacon(id=10, x=26.5, y=35)
                 ]
 
-WAYPOINTS_DATA = [Point(x=5, y=2),
+WAYPOINTS_DATA = [Point(x=5, y=3),
                   Point(x=5, y=12),
                   Point(x=25, y=28),
-                  Point(x=25, y=38),
+                  Point(x=25, y=37),
+                  Point(x=22.5, y=37),
+                  Point(x=7.5, y=3)
                   ]
