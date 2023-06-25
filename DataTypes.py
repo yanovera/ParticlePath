@@ -39,3 +39,8 @@ class OdometerReading(BaseModel):
     vy: float
 
 
+class Variances(BaseModel):
+    odometer: float = 0.1
+    proximity: float = 0.4
+    motion: float = 0.001
+    regulation = 0.01
