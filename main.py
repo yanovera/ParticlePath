@@ -11,10 +11,11 @@ BEACON_RADIUS = 2.0
 SPEED = 1.0  # distance unit per time unit
 FREQ = 4  # sampling frequency per time unit
 SAVE_ANIMATION = False
-NUM_PARTICLES = [100, 200, 400, 800]
+NUM_PARTICLES = [10, 20, 40, 80]
 NUM_RUNS = 100
 PLOT_EVERY_RUN = False
-SAVE_RESULTS = True
+SAVE_RESULTS = False
+SEED = 0
 
 VARIANCES = Variances(odometer=0.1, proximity=0.4, motion=0.001, regulation=0.01)
 
@@ -50,20 +51,33 @@ def main():
                                 waypoints_data=WAYPOINTS_DATA,
                                 waypoint_tolerance=WAYPOINT_TOLERANCE,
                                 world_limits=WORLD_LIMITS,
-                                num_particles=n))
+                                num_particles=n,
+                                description=f'{n} particles',
+                                beacon_concentration=False))
+        particle_filters.append(ParticleFilter(beacon_radius=BEACON_RADIUS,
+                                beacons_data=BEACONS_DATA,
+                                freq=FREQ,
+                                speed=SPEED,
+                                variances=VARIANCES,
+                                waypoints_data=WAYPOINTS_DATA,
+                                waypoint_tolerance=WAYPOINT_TOLERANCE,
+                                world_limits=WORLD_LIMITS,
+                                num_particles=n,
+                                description=f'{n} particles, with beacon concentration',
+                                beacon_concentration=True))
     mse: dict[int: list[float]] = {}
-    se = np.empty((0, SIM_STEPS+1))
     for pf in particle_filters:
+        se = np.empty((0, SIM_STEPS + 1))
         for i in range(NUM_RUNS):
             print(f'performing run #{i+1} of {NUM_RUNS} for N={pf.num_particles}')
-            se = np.vstack([se, pf.run(sim_steps=SIM_STEPS, seed=i, plot=PLOT_EVERY_RUN)])
-        mse[pf.num_particles] = np.average(se, axis=0)
+            se = np.vstack([se, pf.run(sim_steps=SIM_STEPS, seed=i+SEED, plot=PLOT_EVERY_RUN)])
+        mse[pf.description] = np.average(se, axis=0)
 
     fig, ax = plt.subplots(1)
 
     for key, value in mse.items():
         time_indices = [k/FREQ for k in range(SIM_STEPS+1)]
-        ax.semilogy(time_indices, value, label=f'{str(key)} particles')
+        ax.semilogy(time_indices, value, label=key)
 
     ax.legend()
 

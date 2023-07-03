@@ -10,7 +10,7 @@ from DataTypes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReadi
 
 
 class ParticleFilter:
-    def __init__(self, world_limits: WorldLimits, beacons_data: list[Beacon], waypoints_data: list[Point], freq: int, variances: Variances, speed: float, waypoint_tolerance: float, beacon_radius: float, num_particles: int):
+    def __init__(self, world_limits: WorldLimits, beacons_data: list[Beacon], waypoints_data: list[Point], freq: int, variances: Variances, speed: float, waypoint_tolerance: float, beacon_radius: float, num_particles: int, description: str, beacon_concentration: bool=False):
         self.fig = plt.figure()
         self.world_limits = world_limits
         self.beacons = beacons_data
@@ -19,6 +19,8 @@ class ParticleFilter:
         self.waypoint_tolerance = waypoint_tolerance
         self.beacon_radius = beacon_radius
         self.num_particles = num_particles
+        self.beacon_concentration = beacon_concentration
+        self.description = description
 
         self.waypoints_data = waypoints_data
 
@@ -72,6 +74,9 @@ class ParticleFilter:
 
             # predict particles by sampling from motion model with odometry info
             self.move_particles(particles=particles, odometer_reading=odometer_reading)
+            if self.beacon_concentration:
+                for beacon_data in sensors_reading.values():
+                    self.move_particles_to_circle(particles=particles, center=beacon_data[0], radius=self.beacon_radius)
 
             # calculate importance weights according to sensors readings
             weights = self.eval_weights(sensor_data=sensors_reading,
@@ -210,7 +215,11 @@ class ParticleFilter:
             weights.append(likelihood * old_weights[i])
 
         # normalize weights
-        weights = np.array(weights) / sum(weights)
+        normalizer = sum(weights)
+        if normalizer > 0:
+            weights = np.array(weights) / normalizer
+        else:
+            weights = np.ones(len(particles)) / len(particles)
 
         return weights
 
@@ -241,3 +250,15 @@ class ParticleFilter:
             new_particles.append(copy.deepcopy(particles[i]))
 
         return new_particles
+
+    @staticmethod
+    def move_particles_to_circle(particles: list[Particle], center: Point, radius: float):
+        for particle in particles:
+            dx = particle.x - center.x
+            dy = particle.y - center.y
+            distance = np.linalg.norm([dx, dy])
+            if distance > radius:
+                ratio = distance / radius
+                particle.x = dx / ratio + center.x
+                particle.y = dy / ratio + center.y
+
