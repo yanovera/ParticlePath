@@ -2,22 +2,25 @@ from DataTypes import WorldLimits, Variances, Beacon, Point
 from ParticleFilter import ParticleFilter
 import numpy as np
 import matplotlib.pyplot as plt
-import csv
+import pickle
 
 WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
-SIM_STEPS = 177
+SIM_STEPS = 250
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
 SPEED = 1.0  # distance unit per time unit
 FREQ = 4  # sampling frequency per time unit
 SAVE_ANIMATION = False
-NUM_PARTICLES = [10, 20, 40, 80]
+NUM_PARTICLES = []  #[25, 50, 100, 200]
+NUM_PARTICLES_CONCENTRATION = [20]
 NUM_RUNS = 100
 PLOT_EVERY_RUN = False
 SAVE_RESULTS = False
+READ_RESULTS = True
+DICT_FILE = 'results.txt'
 SEED = 0
 
-VARIANCES = Variances(odometer=0.1, proximity=0.4, motion=0.001, regulation=0.01)
+VARIANCES = Variances(odometer=0.1, proximity=0.4, motion=0.001, regulation=0.001)
 
 BEACONS_DATA = [Beacon(id=1, x=3.5, y=5),
                 Beacon(id=2, x=6.5, y=5),
@@ -54,6 +57,7 @@ def main():
                                 num_particles=n,
                                 description=f'{n} particles',
                                 beacon_concentration=False))
+    for n in NUM_PARTICLES_CONCENTRATION:
         particle_filters.append(ParticleFilter(beacon_radius=BEACON_RADIUS,
                                 beacons_data=BEACONS_DATA,
                                 freq=FREQ,
@@ -66,6 +70,8 @@ def main():
                                 description=f'{n} particles, with beacon concentration',
                                 beacon_concentration=True))
     mse: dict[int: list[float]] = {}
+    if READ_RESULTS:
+        mse = read_dict(DICT_FILE)
     for pf in particle_filters:
         se = np.empty((0, SIM_STEPS + 1))
         for i in range(NUM_RUNS):
@@ -88,20 +94,22 @@ def main():
     plt.show()
 
     if SAVE_RESULTS:
-        save_dict(dict_to_save=mse, filename='results.csv')
+        save_dict(dict_to_save=mse, filename=DICT_FILE)
 
 
 def save_dict(dict_to_save: dict, filename: str):
-    with open(filename, "w", newline="") as fp:
-        # Create a writer object
-        writer = csv.DictWriter(fp, fieldnames=dict_to_save.keys())
+    file = open(filename, "wb")
 
-        # Write the header row
-        writer.writeheader()
+    pickle.dump(dict_to_save, file)
 
-        # Write the data rows
-        writer.writerow(dict_to_save)
-        print('Done writing dict to a csv file')
+    file.close()
+
+
+def read_dict(filename: str) -> dict:
+    with open(filename, "rb") as handle:
+        data = handle.read()
+
+    return pickle.loads(data)
 
 
 if __name__ == "__main__":
