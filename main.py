@@ -11,13 +11,14 @@ BEACON_RADIUS = 2.0
 SPEED = 1.0  # distance unit per time unit
 FREQ = 4  # sampling frequency per time unit
 SAVE_ANIMATION = False
-NUM_PARTICLES = []  #[25, 50, 100, 200]
-NUM_PARTICLES_CONCENTRATION = [20]
+NUM_PARTICLES = [50, 100, 200, 400]
+NUM_PARTICLES_GATHERING = [50, 250]
 NUM_RUNS = 100
 PLOT_EVERY_RUN = False
 SAVE_RESULTS = False
-READ_RESULTS = True
-DICT_FILE = 'results.txt'
+READ_RESULTS = False
+DICT_READ_FILE = 'results.txt'
+DICT_SAVE_FILE = 'results2.txt'
 SEED = 0
 
 VARIANCES = Variances(odometer=0.1, proximity=0.4, motion=0.001, regulation=0.001)
@@ -56,8 +57,8 @@ def main():
                                 world_limits=WORLD_LIMITS,
                                 num_particles=n,
                                 description=f'{n} particles',
-                                beacon_concentration=False))
-    for n in NUM_PARTICLES_CONCENTRATION:
+                                gather_particles=False))
+    for n in NUM_PARTICLES_GATHERING:
         particle_filters.append(ParticleFilter(beacon_radius=BEACON_RADIUS,
                                 beacons_data=BEACONS_DATA,
                                 freq=FREQ,
@@ -67,11 +68,11 @@ def main():
                                 waypoint_tolerance=WAYPOINT_TOLERANCE,
                                 world_limits=WORLD_LIMITS,
                                 num_particles=n,
-                                description=f'{n} particles, with beacon concentration',
-                                beacon_concentration=True))
+                                description=f'{n} particles, with gathering',
+                                gather_particles=True))
     mse: dict[int: list[float]] = {}
     if READ_RESULTS:
-        mse = read_dict(DICT_FILE)
+        mse = read_dict(DICT_READ_FILE)
     for pf in particle_filters:
         se = np.empty((0, SIM_STEPS + 1))
         for i in range(NUM_RUNS):
@@ -94,7 +95,7 @@ def main():
     plt.show()
 
     if SAVE_RESULTS:
-        save_dict(dict_to_save=mse, filename=DICT_FILE)
+        save_dict(dict_to_save=mse, filename=DICT_SAVE_FILE)
 
 
 def save_dict(dict_to_save: dict, filename: str):
