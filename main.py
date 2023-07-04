@@ -8,7 +8,6 @@ WORLD_LIMITS = WorldLimits(x_min=0, y_min=0, x_max=30, y_max=40)
 SIM_STEPS = 250
 WAYPOINT_TOLERANCE = 0.2
 BEACON_RADIUS = 2.0
-SPEED = 1.0  # distance unit per time unit
 FREQ = 4  # sampling frequency per time unit
 SAVE_ANIMATION = False
 NUM_PARTICLES = [50, 100, 200, 400]
@@ -50,7 +49,6 @@ def main():
         particle_filters.append(ParticleFilter(beacon_radius=BEACON_RADIUS,
                                 beacons_data=BEACONS_DATA,
                                 freq=FREQ,
-                                speed=SPEED,
                                 variances=VARIANCES,
                                 waypoints_data=WAYPOINTS_DATA,
                                 waypoint_tolerance=WAYPOINT_TOLERANCE,
@@ -62,7 +60,6 @@ def main():
         particle_filters.append(ParticleFilter(beacon_radius=BEACON_RADIUS,
                                 beacons_data=BEACONS_DATA,
                                 freq=FREQ,
-                                speed=SPEED,
                                 variances=VARIANCES,
                                 waypoints_data=WAYPOINTS_DATA,
                                 waypoint_tolerance=WAYPOINT_TOLERANCE,

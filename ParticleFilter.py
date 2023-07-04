@@ -10,12 +10,11 @@ from DataTypes import WorldLimits, Point, Particle, Beacon, Agent, OdometerReadi
 
 
 class ParticleFilter:
-    def __init__(self, world_limits: WorldLimits, beacons_data: list[Beacon], waypoints_data: list[Point], freq: int, variances: Variances, speed: float, waypoint_tolerance: float, beacon_radius: float, num_particles: int, description: str, gather_particles: bool=False):
+    def __init__(self, world_limits: WorldLimits, beacons_data: list[Beacon], waypoints_data: list[Point], freq: int, variances: Variances, waypoint_tolerance: float, beacon_radius: float, num_particles: int, description: str, gather_particles: bool=False):
         self.fig = plt.figure()
         self.world_limits = world_limits
         self.beacons = beacons_data
         self.variances = variances
-        self.speed = speed
         self.waypoint_tolerance = waypoint_tolerance
         self.beacon_radius = beacon_radius
         self.num_particles = num_particles
@@ -172,8 +171,8 @@ class ParticleFilter:
         delta_y = next_waypoint.y - agent.y
         distance = agent.distance(next_waypoint)
 
-        agent.x += self.dt*(delta_x / distance * self.speed + np.random.normal(loc=0, scale=scale))
-        agent.y += self.dt*(delta_y / distance * self.speed + np.random.normal(loc=0, scale=scale))
+        agent.x += self.dt*(delta_x / distance + np.random.normal(loc=0, scale=scale))
+        agent.y += self.dt*(delta_y / distance + np.random.normal(loc=0, scale=scale))
 
     def read_odometer(self, trajectory: list[Point]) -> OdometerReading:
         scale = np.sqrt(self.variances.odometer)
