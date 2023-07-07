@@ -81,7 +81,7 @@ def main():
 
     for key, value in mse.items():
         time_indices = [k/FREQ for k in range(SIM_STEPS+1)]
-        ax.semilogy(time_indices, value, label=key)
+        ax.semilogy(time_indices[1:], value[1:], label=key)
 
     ax.legend()
 
